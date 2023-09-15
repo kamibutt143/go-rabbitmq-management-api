@@ -1,4 +1,4 @@
-package lib
+package go_rabbitmq_management_api
 
 import (
 	"fmt"

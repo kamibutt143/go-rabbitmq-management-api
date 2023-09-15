@@ -1,5 +1,5 @@
 // Package lib provides an API client for interacting with RabbitMQ services.
-package lib
+package go_rabbitmq_management_api
 
 import (
 	"bytes"
