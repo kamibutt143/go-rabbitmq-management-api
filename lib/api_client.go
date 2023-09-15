@@ -1,5 +1,5 @@
 // Package lib provides an API client for interacting with RabbitMQ services.
-package go_rabbitmq_management_api
+package lib
 
 import (
 	"bytes"
@@ -34,7 +34,6 @@ func NewRabbitMQAPIClient(config map[string]interface{}) (RabbitMQAPIClient, err
 	for _, key := range requiredKeys {
 		if _, exists := config[key]; !exists {
 			err := fmt.Errorf("config key '%s' is missing", key)
-			fmt.Println("Error:", err)
 			return nil, err
 		}
 	}
@@ -57,59 +56,54 @@ func (c *rabbitMQAPIClient) getUrl(path string) string {
 		path = "/" + path
 	}
 
-	return c.config["host"].(string) + ":" + strconv.Itoa(c.config["port"].(int)) + "/" + path
+	return c.config["host"].(string) + ":" + strconv.Itoa(c.config["port"].(int)) + path
 }
 
 // request performs an HTTP request with the specified method, path, and optional body.
 func (c *rabbitMQAPIClient) request(path string, method string, body string) (string, error) {
-	// Define the data you want to send in the POST request body as a byte slice
-	var postData *bytes.Buffer
-	if body != "" {
-		postData = bytes.NewBuffer([]byte(body))
-	}
+	var req *http.Request
+	var err error
 
-	// Create a new HTTP request
-	req, err := http.NewRequest(method, c.getUrl(path), postData)
+	// Define the data you want to send in the POST request body as a byte slice
+	if body != "" {
+		req, err = http.NewRequest(method, c.getUrl(path), bytes.NewBuffer([]byte(body)))
+	} else {
+		req, err = http.NewRequest(method, c.getUrl(path), nil)
+	}
 	if err != nil {
-		fmt.Println("Error creating request:", err)
 		return "", err
 	}
 	// Set the content type header to JSON
 	req.Header.Set("Content-Type", "application/json")
 
 	// Set basic authentication
-	req.SetBasicAuth(c.config["username"].(string), c.config["password"].(string))
+	req.SetBasicAuth(c.config["user"].(string), c.config["password"].(string))
 
 	// Send the request
 	resp, err := c.client.Do(req)
 	if err != nil {
-		fmt.Println("Error sending request:", err)
 		return "", err
 	}
 
 	// Make sure to close the response body if it's not nil
-	err = resp.Body.Close()
-	if err != nil {
-		fmt.Println("Error coming in closing body of response:", err)
-		return "", err
-	}
+	defer func(Body io.ReadCloser) {
+		err = Body.Close()
+		if err != nil {
+			fmt.Println("Error coming in closing body of response:", err)
+		}
+	}(resp.Body)
 
 	// Read the response body
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Error reading response body:", err)
 		return "", err
 	}
 
 	// Check the response status code
 	if resp.StatusCode != http.StatusOK {
 		err = fmt.Errorf("HTTP Request failed with status: '%s'", resp.Status)
-		fmt.Println("Error:", err)
 		return "", err
 	}
-
-	// Print the response body (JSON)
-	fmt.Println(string(responseBody))
 
 	return string(responseBody), nil
 }
