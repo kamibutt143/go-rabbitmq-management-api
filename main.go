@@ -3,7 +3,7 @@ package go_rabbitmq_management_api
 import "github.com/kamibutt143/go-rabbitmq-management-api/lib"
 
 type RabbitMQManager struct {
-	vhost go_rabbitmq_management_api.VhostInterface
+	Vhost go_rabbitmq_management_api.VhostInterface
 }
 
 func NewRabbitMQManager(config map[string]interface{}) (*RabbitMQManager, error) {
@@ -14,6 +14,6 @@ func NewRabbitMQManager(config map[string]interface{}) (*RabbitMQManager, error)
 	}
 
 	return &RabbitMQManager{
-		vhost,
+		Vhost: vhost,
 	}, nil
 }
