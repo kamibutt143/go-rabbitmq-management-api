@@ -2,7 +2,6 @@
 package lib
 
 import (
-	"fmt"
 	"net/url"
 )
 
@@ -37,8 +36,8 @@ func (b *binding) ListBindings() (string, error) {
 
 // ListBindingForAVhost retrieves a list of bindings for a specific RabbitMQ virtual host.
 func (b *binding) ListBindingForAVhost(vhost string) (string, error) {
-	if vhost == "" {
-		return "", fmt.Errorf("missing vhost parameter")
+	if err := validateParam(vhost, "vhost"); err != nil {
+		return "", err
 	}
 
 	path := "/api/bindings/" + url.QueryEscape(vhost)

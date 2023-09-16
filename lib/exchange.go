@@ -44,7 +44,7 @@ func (e *exchange) ListExchanges() (string, error) {
 
 // ListExchangesForAVhost retrieves a list of exchanges for a specific virtual host.
 func (e *exchange) ListExchangesForAVhost(vhost string) (string, error) {
-	if err := validateParams(vhost, "", ""); err != nil {
+	if err := validateExchangeParams(vhost, "", ""); err != nil {
 		return "", err
 	}
 
@@ -54,7 +54,7 @@ func (e *exchange) ListExchangesForAVhost(vhost string) (string, error) {
 
 // GetAExchange retrieves information about a specific exchange.
 func (e *exchange) GetAExchange(vhost string, exchange string) (string, error) {
-	if err := validateParams(vhost, exchange, ""); err != nil {
+	if err := validateExchangeParams(vhost, exchange, ""); err != nil {
 		return "", err
 	}
 
@@ -64,7 +64,7 @@ func (e *exchange) GetAExchange(vhost string, exchange string) (string, error) {
 
 // CreateExchange creates a new exchange with the given parameters and options.
 func (e *exchange) CreateExchange(vhost string, exchange string, exchangeType string, options map[string]string) (string, error) {
-	if err := validateParams(vhost, exchange, exchangeType); err != nil {
+	if err := validateExchangeParams(vhost, exchange, exchangeType); err != nil {
 		return "", err
 	}
 
@@ -80,7 +80,7 @@ func (e *exchange) CreateExchange(vhost string, exchange string, exchangeType st
 
 // DeleteExchange deletes a specific exchange.
 func (e *exchange) DeleteExchange(vhost string, exchange string) (string, error) {
-	if err := validateParams(vhost, exchange, ""); err != nil {
+	if err := validateExchangeParams(vhost, exchange, ""); err != nil {
 		return "", err
 	}
 	path := "/api/exchanges/" + url.QueryEscape(vhost) + "/" + url.QueryEscape(exchange)
@@ -89,7 +89,7 @@ func (e *exchange) DeleteExchange(vhost string, exchange string) (string, error)
 
 // GetBindingsForSource retrieves bindings for which the specified exchange is the source.
 func (e *exchange) GetBindingsForSource(vhost string, exchange string) (string, error) {
-	if err := validateParams(vhost, exchange, ""); err != nil {
+	if err := validateExchangeParams(vhost, exchange, ""); err != nil {
 		return "", err
 	}
 
@@ -99,7 +99,7 @@ func (e *exchange) GetBindingsForSource(vhost string, exchange string) (string, 
 
 // GetBindingsForDestination retrieves bindings for which the specified exchange is the destination.
 func (e *exchange) GetBindingsForDestination(vhost string, exchange string) (string, error) {
-	if err := validateParams(vhost, exchange, ""); err != nil {
+	if err := validateExchangeParams(vhost, exchange, ""); err != nil {
 		return "", err
 	}
 
@@ -110,7 +110,7 @@ func (e *exchange) GetBindingsForDestination(vhost string, exchange string) (str
 // PublishMessage sends a message to the specified exchange in the given virtual host (vhost).
 // Returns a string response and an error if the request fails or if any required parameters are missing.
 func (e *exchange) PublishMessage(vhost string, exchange string, options map[string]string) (string, error) {
-	if err := validateParams(vhost, exchange, ""); err != nil {
+	if err := validateExchangeParams(vhost, exchange, ""); err != nil {
 		return "", err
 	}
 
@@ -134,18 +134,4 @@ func (e *exchange) PublishMessage(vhost string, exchange string, options map[str
 
 	path := "/api/exchanges/" + url.QueryEscape(vhost) + "/" + url.QueryEscape(exchange) + "/bindings/destination"
 	return e.client.Post(path, string(jsonData))
-}
-
-// validateParams checks if required parameters are missing.
-func validateParams(vhost, exchange, exchangeType string) error {
-	if vhost == "" {
-		return errors.New("missing vhost parameter")
-	}
-	if exchange == "" {
-		return errors.New("missing exchange parameter")
-	}
-	if exchangeType == "" {
-		return errors.New("missing exchange type parameter")
-	}
-	return nil
 }

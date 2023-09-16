@@ -3,7 +3,6 @@ package lib
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/url"
 )
@@ -99,9 +98,10 @@ func (b *queue) SetQueueActions(vhost string, queue string, action string) (stri
 	if err := validateQueueParams(vhost, queue); err != nil {
 		return "", err
 	}
-	if action == "" {
-		return "", fmt.Errorf("missing action parameter")
+	if err := validateParam(action, "action"); err != nil {
+		return "", err
 	}
+
 	// Create a map for the JSON data
 	data := map[string]string{"action": action}
 
@@ -120,15 +120,14 @@ func (b *queue) GetMessages(vhost string, queue string, options map[string]strin
 	if err := validateQueueParams(vhost, queue); err != nil {
 		return "", err
 	}
-
-	if options["count"] == "" {
-		return "", errors.New("missing count parameter")
+	if err := validateParam(options["count"], "count"); err != nil {
+		return "", err
 	}
-	if options["requeue"] == "" {
-		return "", errors.New("missing requeue parameter")
+	if err := validateParam(options["requeue"], "requeue"); err != nil {
+		return "", err
 	}
-	if options["encoding"] == "" {
-		return "", errors.New("missing encoding parameter")
+	if err := validateParam(options["encoding"], "encoding"); err != nil {
+		return "", err
 	}
 
 	jsonData, err := json.Marshal(options)
@@ -138,15 +137,4 @@ func (b *queue) GetMessages(vhost string, queue string, options map[string]strin
 
 	path := "/api/queues/" + url.QueryEscape(vhost) + "/" + url.QueryEscape(queue) + "/get"
 	return b.client.Post(path, string(jsonData))
-}
-
-// validateQueueParams checks if required parameters are missing.
-func validateQueueParams(vhost, queue string) error {
-	if vhost == "" {
-		return errors.New("missing vhost parameter")
-	}
-	if queue == "" {
-		return errors.New("missing queue parameter")
-	}
-	return nil
 }
