@@ -18,11 +18,16 @@ func buildPaginationQuery(pagination map[string]interface{}) (string, error) {
 			return "", fmt.Errorf("invalid key '%s' in pagination", key)
 		}
 	}
+
+	return buildQuery(pagination)
+}
+
+func buildQuery(query map[string]interface{}) (string, error) {
 	// Initialize an empty slice to hold the key-value pairs
 	var queryParams []string
 
 	// Iterate over the pagination map
-	for key, value := range pagination {
+	for key, value := range query {
 		// Convert the value to a string
 		valueStr := fmt.Sprintf("%v", value)
 

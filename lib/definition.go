@@ -2,7 +2,6 @@ package lib
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/url"
 )
 
@@ -14,7 +13,7 @@ type definition struct {
 // DefinitionInterface defines the interface for interacting with RabbitMQ definitions.
 type DefinitionInterface interface {
 	ListDefinitions() (string, error)
-	SetDefinitions(definition string) (string, error)
+	CreateDefinition(definition string) (string, error)
 	ListDefinitionsForAVhost(vhost string) (string, error)
 }
 
@@ -36,10 +35,10 @@ func (d *definition) ListDefinitions() (string, error) {
 	return d.client.Get("/api/definitions")
 }
 
-// SetDefinitions sets RabbitMQ definitions using the provided definition string in JSON format.
-func (d *definition) SetDefinitions(definition string) (string, error) {
-	if definition == "" {
-		return "", fmt.Errorf("missing definition parameter")
+// CreateDefinition sets RabbitMQ definitions using the provided definition string in JSON format.
+func (d *definition) CreateDefinition(definition string) (string, error) {
+	if err := validateParam(definition, "definition"); err != nil {
+		return "", err
 	}
 
 	// Create a map for the JSON data
@@ -57,8 +56,8 @@ func (d *definition) SetDefinitions(definition string) (string, error) {
 
 // ListDefinitionsForAVhost The server definitions for a given virtual host - exchanges, queues, bindings and policies.
 func (d *definition) ListDefinitionsForAVhost(vhost string) (string, error) {
-	if vhost == "" {
-		return "", fmt.Errorf("missing vhost parameter")
+	if err := validateParam(vhost, "vhost"); err != nil {
+		return "", err
 	}
 
 	path := "/api/definitions/" + url.QueryEscape(vhost)

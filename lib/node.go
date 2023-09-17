@@ -2,7 +2,6 @@
 package lib
 
 import (
-	"fmt"
 	"net/url"
 )
 
@@ -14,7 +13,7 @@ type node struct {
 // NodeInterface defines the interface for interacting with RabbitMQ node.
 type NodeInterface interface {
 	ListNodes() (string, error)
-	GetANode(node string) (string, error)
+	GetANode(node string, options map[string]interface{}) (string, error)
 }
 
 // NewNode creates a new node instance with the provided configuration.
@@ -35,12 +34,21 @@ func (n *node) ListNodes() (string, error) {
 	return n.client.Get(path)
 }
 
-// GetANode retrieve a node information
-func (n *node) GetANode(node string) (string, error) {
-	if node == "" {
-		return "", fmt.Errorf("missing node parameter")
+// GetANode An individual node in the RabbitMQ cluster.
+// Add "?memory=true" to get memory statistics, and "?binary=true" to get a breakdown of binary memory use (may be expensive if there are many small binaries in the system).
+func (n *node) GetANode(node string, options map[string]interface{}) (string, error) {
+	if err := validateParam(node, "node"); err != nil {
+		return "", err
 	}
 
 	path := "/api/nodes/" + url.QueryEscape(node)
+	query, err := buildQuery(options)
+	if err != nil {
+		return "", err
+	}
+	if query != "" {
+		path += query
+	}
+
 	return n.client.Get(path)
 }

@@ -3,7 +3,6 @@ package lib
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 // cluster represents the Cluster API client.
@@ -14,7 +13,7 @@ type cluster struct {
 // ClusterInterface defines the interface for interacting with RabbitMQ clusters.
 type ClusterInterface interface {
 	GetClusterName() (string, error)
-	SetClusterName(clusterName string) (string, error)
+	SetClusterName(cluster string) (string, error)
 }
 
 // NewCluster creates a new Cluster API client with the provided configuration.
@@ -36,13 +35,13 @@ func (c *cluster) GetClusterName() (string, error) {
 }
 
 // SetClusterName sets the name of the RabbitMQ cluster.
-func (c *cluster) SetClusterName(clusterName string) (string, error) {
-	if clusterName == "" {
-		return "", fmt.Errorf("missing clusterName parameter")
+func (c *cluster) SetClusterName(cluster string) (string, error) {
+	if err := validateParam(cluster, "cluster"); err != nil {
+		return "", err
 	}
 
 	// Create a map for the JSON data
-	data := map[string]string{"name": clusterName}
+	data := map[string]string{"name": cluster}
 
 	// Marshal the map into JSON
 	jsonData, err := json.Marshal(data)
