@@ -12,7 +12,7 @@ type channel struct {
 
 // ChannelInterface defines the interface for interacting with RabbitMQ channels.
 type ChannelInterface interface {
-	ListChannels() (string, error)
+	ListChannels(pagination map[string]interface{}) (string, error)
 	GetAChannel(channel string) (string, error)
 }
 
@@ -29,12 +29,20 @@ func NewChannel(config map[string]interface{}) (ChannelInterface, error) {
 	}, nil
 }
 
-// ListChannels retrieves a list of all channels.
-func (c *channel) ListChannels() (string, error) {
-	return c.client.Get("/api/channels")
+// ListChannels A list of all open channels. Use pagination parameters to filter channels.
+func (c *channel) ListChannels(pagination map[string]interface{}) (string, error) {
+	path := "/api/channels"
+	query, err := buildPaginationQuery(pagination)
+	if err != nil {
+		return "", err
+	}
+	if query != "" {
+		path += query
+	}
+	return c.client.Get(path)
 }
 
-// GetAChannel retrieves information about a specific channel.
+// GetAChannel Details about an individual channel.
 func (c *channel) GetAChannel(channel string) (string, error) {
 	if err := validateParam(channel, "channel"); err != nil {
 		return "", err

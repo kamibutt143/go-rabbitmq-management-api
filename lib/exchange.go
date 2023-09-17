@@ -3,7 +3,6 @@ package lib
 
 import (
 	"encoding/json"
-	"errors"
 	"net/url"
 )
 
@@ -14,8 +13,8 @@ type exchange struct {
 
 // ExchangeInterface defines the interface for interacting with RabbitMQ exchanges and bindings.
 type ExchangeInterface interface {
-	ListExchanges() (string, error)
-	ListExchangesForAVhost(vhost string) (string, error)
+	ListExchanges(pagination map[string]interface{}) (string, error)
+	ListExchangesForAVhost(vhost string, pagination map[string]interface{}) (string, error)
 	GetAExchange(vhost string, exchange string) (string, error)
 	CreateExchange(vhost string, exchange string, exchangeType string, options map[string]string) (string, error)
 	DeleteExchange(vhost string, exchange string) (string, error)
@@ -37,18 +36,34 @@ func NewExchange(config map[string]interface{}) (ExchangeInterface, error) {
 	}, nil
 }
 
-// ListExchanges retrieves a list of all exchanges.
-func (e *exchange) ListExchanges() (string, error) {
-	return e.client.Get("/api/exchanges")
+// ListExchanges A list of all exchanges. Use pagination parameters to filter exchanges.
+func (e *exchange) ListExchanges(pagination map[string]interface{}) (string, error) {
+	path := "/api/exchanges"
+	query, err := buildPaginationQuery(pagination)
+	if err != nil {
+		return "", err
+	}
+	if query != "" {
+		path += query
+	}
+
+	return e.client.Get(path)
 }
 
-// ListExchangesForAVhost retrieves a list of exchanges for a specific virtual host.
-func (e *exchange) ListExchangesForAVhost(vhost string) (string, error) {
+// ListExchangesForAVhost A list of all exchanges in a given virtual host. Use pagination parameters to filter exchanges.
+func (e *exchange) ListExchangesForAVhost(vhost string, pagination map[string]interface{}) (string, error) {
 	if err := validateExchangeParams(vhost, "", ""); err != nil {
 		return "", err
 	}
 
 	path := "/api/exchanges/" + url.QueryEscape(vhost)
+	query, err := buildPaginationQuery(pagination)
+	if err != nil {
+		return "", err
+	}
+	if query != "" {
+		path += query
+	}
 	return e.client.Get(path)
 }
 
@@ -87,7 +102,7 @@ func (e *exchange) DeleteExchange(vhost string, exchange string) (string, error)
 	return e.client.Delete(path)
 }
 
-// GetBindingsForSource retrieves bindings for which the specified exchange is the source.
+// GetBindingsForSource A list of all bindings in which a given exchange is the source.
 func (e *exchange) GetBindingsForSource(vhost string, exchange string) (string, error) {
 	if err := validateExchangeParams(vhost, exchange, ""); err != nil {
 		return "", err
@@ -97,7 +112,7 @@ func (e *exchange) GetBindingsForSource(vhost string, exchange string) (string, 
 	return e.client.Get(path)
 }
 
-// GetBindingsForDestination retrieves bindings for which the specified exchange is the destination.
+// GetBindingsForDestination A list of all bindings in which a given exchange is the destination.
 func (e *exchange) GetBindingsForDestination(vhost string, exchange string) (string, error) {
 	if err := validateExchangeParams(vhost, exchange, ""); err != nil {
 		return "", err
@@ -108,23 +123,23 @@ func (e *exchange) GetBindingsForDestination(vhost string, exchange string) (str
 }
 
 // PublishMessage sends a message to the specified exchange in the given virtual host (vhost).
-// Returns a string response and an error if the request fails or if any required parameters are missing.
+// You will need a body looking something like:
+// {"properties":{},"routing_key":"my key","payload":"my body","payload_encoding":"string"}
 func (e *exchange) PublishMessage(vhost string, exchange string, options map[string]string) (string, error) {
 	if err := validateExchangeParams(vhost, exchange, ""); err != nil {
 		return "", err
 	}
-
-	if options["properties"] == "" {
-		return "", errors.New("missing properties parameter")
+	if err := validateParam(options["properties"], "properties"); err != nil {
+		return "", err
 	}
-	if options["routing_key"] == "" {
-		return "", errors.New("missing routing_key parameter")
+	if err := validateParam(options["routing_key"], "routing_key"); err != nil {
+		return "", err
 	}
-	if options["payload"] == "" {
-		return "", errors.New("missing payload parameter")
+	if err := validateParam(options["payload"], "payload"); err != nil {
+		return "", err
 	}
-	if options["payload_encoding"] == "" {
-		return "", errors.New("missing payload_encoding parameter")
+	if err := validateParam(options["payload_encoding"], "payload_encoding"); err != nil {
+		return "", err
 	}
 
 	jsonData, err := json.Marshal(options)
@@ -132,6 +147,6 @@ func (e *exchange) PublishMessage(vhost string, exchange string, options map[str
 		return "", err
 	}
 
-	path := "/api/exchanges/" + url.QueryEscape(vhost) + "/" + url.QueryEscape(exchange) + "/bindings/destination"
+	path := "/api/exchanges/" + url.QueryEscape(vhost) + "/" + url.QueryEscape(exchange) + "/publish"
 	return e.client.Post(path, string(jsonData))
 }
