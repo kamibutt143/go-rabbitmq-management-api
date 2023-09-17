@@ -15,6 +15,7 @@ The Go RabbitMQ Management API Client is a powerful library that allows you to i
 - **Channel** provides an API client for interacting with RabbitMQ channel.
 - **Cluster** provides an API client for interacting with RabbitMQ cluster.
 - **Connection** provides an API client for interacting with RabbitMQ connection.
+- **Consumer** provides an API client for interacting with RabbitMQ consumer.
 - **Definition** provides an API client for interacting with RabbitMQ definition.
 - **Exchange** provides an API client for interacting with RabbitMQ exchange.
 - **Node** provides an API client for interacting with RabbitMQ node.

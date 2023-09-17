@@ -127,10 +127,13 @@ func (b *queue) PurgeQueue(vhost string, queue string) (string, error) {
 // SetQueueActions Actions that can be taken on a queue. POST a body like:
 // {"action":"sync"}
 func (b *queue) SetQueueActions(vhost string, queue string, action string) (string, error) {
-	if err := validateQueueParams(vhost, queue); err != nil {
-		return "", err
+	params := map[string]string{
+		"vhost":  vhost,
+		"queue":  queue,
+		"action": action,
 	}
-	if err := validateParam(action, "action"); err != nil {
+
+	if err := validateParams(params); err != nil {
 		return "", err
 	}
 
@@ -155,16 +158,15 @@ func (b *queue) SetQueueActions(vhost string, queue string, action string) (stri
 // You should post a body looking like:
 // {"count":5,"ackmode":"ack_requeue_true","encoding":"auto","truncate":50000}
 func (b *queue) GetMessages(vhost string, queue string, options map[string]string) (string, error) {
-	if err := validateQueueParams(vhost, queue); err != nil {
-		return "", err
+	params := map[string]string{
+		"vhost":    vhost,
+		"queue":    queue,
+		"count":    options["count"],
+		"ackmode":  options["ackmode"],
+		"encoding": options["encoding"],
 	}
-	if err := validateParam(options["count"], "count"); err != nil {
-		return "", err
-	}
-	if err := validateParam(options["ackmode"], "ackmode"); err != nil {
-		return "", err
-	}
-	if err := validateParam(options["encoding"], "encoding"); err != nil {
+
+	if err := validateParams(params); err != nil {
 		return "", err
 	}
 

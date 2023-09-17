@@ -58,18 +58,29 @@ func validateExchangeParams(vhost, exchange, exchangeType string) error {
 
 // validateQueueParams checks if required parameters are missing.
 func validateQueueParams(vhost, queue string) error {
-	if err := validateParam(vhost, "vhost"); err != nil {
+	params := map[string]string{
+		"vhost": vhost,
+		"queue": queue,
+	}
+
+	if err := validateParams(params); err != nil {
 		return err
 	}
-	if err := validateParam(queue, "queue"); err != nil {
-		return err
-	}
+
 	return nil
 }
 
 func validateParam(param, paramName string) error {
 	if param == "" {
 		return fmt.Errorf("missing %s parameter", paramName)
+	}
+	return nil
+}
+func validateParams(params map[string]string) error {
+	for paramName, paramValue := range params {
+		if paramValue == "" {
+			return fmt.Errorf("missing %s parameter", paramName)
+		}
 	}
 	return nil
 }
